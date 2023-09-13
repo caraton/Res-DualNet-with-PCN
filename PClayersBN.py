@@ -24,7 +24,8 @@ class ConvBN(nn.Module):
         stride=1,
         padding=1,
         # bias=False,
-        # BN 할때는 conv bias 무조건 false
+        # BN 할때는 conv bias 무조건
+        momentum=0.01,
         f=linear,
         df=d_linear,
         device="cpu",
@@ -68,7 +69,7 @@ class ConvBN(nn.Module):
         self.eps = 0.00005
         # self.batch_count = 0
         # cumulative moving average 일때 사용
-        self.momentum = 0.01 / 3.0
+        self.momentum = momentum
         # self.running_mean = nn.Module.re(torch.full([self.out_channels], 0).float()).to(self.device)
         self.register_buffer(name="running_mean", tensor=torch.zeros([self.out_channels]).float())
         # self.running_var = nn.Parameter(torch.full([self.out_channels], 0).float()).to(self.device)
@@ -100,7 +101,7 @@ class ConvBN(nn.Module):
         if init_weights:
             self._initialize_weights()
 
-    def forward(self, x):
+    def forward(self, x, init=False):
         self.X_col = self.unfold(x.clone())
         # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         # unfold는 deepcopy가 아니기때문에 x가 변해도 X_col이 안변하도록 x.clone() 입력
@@ -135,25 +136,29 @@ class ConvBN(nn.Module):
             # .numel() 는 총 원소 개수 반환, .size(1) 는 output_channel 개수 반환하므로
             # n은 평균 계산의 분모 값
 
-            with torch.no_grad():
-                # https://github.com/ptrblck/pytorch_misc/blob/master/batch_norm_manual.py#L63
-                self.running_mean = delta * self.mean + (1 - delta) * self.running_mean
-                self.running_var = delta * self.var * (self.n / (self.n - 1)) + (1 - delta) * self.running_var
-                # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                # forward pass 마다 self.running_mean과 self.running_var를 갱신해야하므로
-                # 이 둘은 Parameter가 아니라 buffer로 만들어야 한다.
-                # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            if init:
+                # _initialize_Xs 함수로 실행될 때만 running_mean이랑 running_var 계산
+                with torch.no_grad():
+                    # https://github.com/ptrblck/pytorch_misc/blob/master/batch_norm_manual.py#L63
+                    self.running_mean = delta * self.mean + (1 - delta) * self.running_mean
+                    self.running_var = (
+                        delta * self.var * (self.n / (self.n - 1)) + (1 - delta) * self.running_var
+                    )
+                    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                    # forward pass 마다 self.running_mean과 self.running_var를 갱신해야하므로
+                    # 이 둘은 Parameter가 아니라 buffer로 만들어야 한다.
+                    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
-                # update running_var with unbiased var
-                # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                # ==> Implementation follows batch normalization paper,
-                # https://arxiv.org/abs/1502.03167 that calls for unbiased variance when computing moving averages (page 4),
-                # and biased variance during training (page 3).
-                # It is expected that batch norm results are different during training and evaluation,
-                # because during training the batch is normalized with its own mean and (biased) variance,
-                # and during evaluation accumulated running variance and mean are used, thus making evaluation batch-independent.
-                # https://github.com/pytorch/pytorch/issues/3122#issuecomment-336685514
-                # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                    # update running_var with unbiased var
+                    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                    # ==> Implementation follows batch normalization paper,
+                    # https://arxiv.org/abs/1502.03167 that calls for unbiased variance when computing moving averages (page 4),
+                    # and biased variance during training (page 3).
+                    # It is expected that batch norm results are different during training and evaluation,
+                    # because during training the batch is normalized with its own mean and (biased) variance,
+                    # and during evaluation accumulated running variance and mean are used, thus making evaluation batch-independent.
+                    # https://github.com/pytorch/pytorch/issues/3122#issuecomment-336685514
+                    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         else:
             # print(f"==>> self.training: {self.training}")
@@ -368,7 +373,8 @@ class DWConvBN(nn.Module):
         learning_rate,
         stride=1,
         padding=1,
-        bias=False,
+        # bias=False,
+        momentum=0.01,
         f=linear,
         df=d_linear,
         device="cpu",
@@ -386,7 +392,7 @@ class DWConvBN(nn.Module):
             math.floor((self.input_size + (2 * self.padding) - self.kernel_size) / self.stride) + 1
         )
 
-        self.bias = bias
+        self.bias = False
 
         self.f = f
         self.df = df
@@ -415,7 +421,7 @@ class DWConvBN(nn.Module):
         self.eps = 0.00005
         # self.batch_count = 0
         # cumulative moving average 일때 사용
-        self.momentum = 0.01 / 3.0
+        self.momentum = momentum
         self.register_buffer(name="running_mean", tensor=torch.zeros([self.out_channels]).float())
         self.register_buffer(name="running_var", tensor=torch.zeros([self.out_channels]).float())
         # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -441,7 +447,7 @@ class DWConvBN(nn.Module):
         if init_weights:
             self._initialize_weights()
 
-    def forward(self, x):
+    def forward(self, x, init=False):
         self.X_col = self.unfold(x.clone())
         # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         # unfold는 deepcopy가 아니기때문에 x가 변해도 X_col이 안변하도록 x.clone() 입력
@@ -474,21 +480,24 @@ class DWConvBN(nn.Module):
             self.n = self.pre_BN.numel() / self.pre_BN.size(1)
             # .numel() 는 총 원소 개수 반환, .size(1) 는 output_channel 개수 반환하므로
             # n은 평균 계산의 분모 값
-
-            with torch.no_grad():
-                # https://github.com/ptrblck/pytorch_misc/blob/master/batch_norm_manual.py#L63
-                self.running_mean = delta * self.mean + (1 - delta) * self.running_mean
-                self.running_var = delta * self.var * (self.n / (self.n - 1)) + (1 - delta) * self.running_var
-                # update running_var with unbiased var
-                # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                # ==> Implementation follows batch normalization paper,
-                # https://arxiv.org/abs/1502.03167 that calls for unbiased variance when computing moving averages (page 4),
-                # and biased variance during training (page 3).
-                # It is expected that batch norm results are different during training and evaluation,
-                # because during training the batch is normalized with its own mean and (biased) variance,
-                # and during evaluation accumulated running variance and mean are used, thus making evaluation batch-independent.
-                # https://github.com/pytorch/pytorch/issues/3122#issuecomment-336685514
-                # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            if init:
+                # _initialize_Xs 함수로 실행될 때만 running_mean이랑 running_var 계산
+                with torch.no_grad():
+                    # https://github.com/ptrblck/pytorch_misc/blob/master/batch_norm_manual.py#L63
+                    self.running_mean = delta * self.mean + (1 - delta) * self.running_mean
+                    self.running_var = (
+                        delta * self.var * (self.n / (self.n - 1)) + (1 - delta) * self.running_var
+                    )
+                    # update running_var with unbiased var
+                    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                    # ==> Implementation follows batch normalization paper,
+                    # https://arxiv.org/abs/1502.03167 that calls for unbiased variance when computing moving averages (page 4),
+                    # and biased variance during training (page 3).
+                    # It is expected that batch norm results are different during training and evaluation,
+                    # because during training the batch is normalized with its own mean and (biased) variance,
+                    # and during evaluation accumulated running variance and mean are used, thus making evaluation batch-independent.
+                    # https://github.com/pytorch/pytorch/issues/3122#issuecomment-336685514
+                    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         else:
             self.mean = self.running_mean
@@ -707,7 +716,8 @@ class DualPathConvBN(nn.Module):
         learning_rate,
         stride=1,
         padding=1,
-        bias=False,
+        # bias=False,
+        momentum=0.01,
         f=linear,
         df=d_linear,
         device="cpu",
@@ -726,7 +736,7 @@ class DualPathConvBN(nn.Module):
             math.floor((self.input_size + (2 * self.padding) - self.kernel_size) / self.stride) + 1
         )
 
-        self.bias = bias
+        self.bias = False
 
         self.f = f
         self.df = df
@@ -757,7 +767,7 @@ class DualPathConvBN(nn.Module):
         self.eps = 0.00005
         # self.batch_count = 0
         # cumulative moving average 일때 사용
-        self.momentum = 0.01 / 3.0
+        self.momentum = momentum
         self.register_buffer(name="running_mean", tensor=torch.zeros([self.out_channels]).float())
         self.register_buffer(name="running_var", tensor=torch.zeros([self.out_channels]).float())
         # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -783,7 +793,7 @@ class DualPathConvBN(nn.Module):
         if init_weights:
             self._initialize_weights()
 
-    def forward(self, x):
+    def forward(self, x, init=False):
         self.X_col = self.unfold(x.clone())
         # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         # unfold는 deepcopy가 아니기때문에 x가 변해도 X_col이 안변하도록 x.clone() 입력
@@ -828,21 +838,24 @@ class DualPathConvBN(nn.Module):
             self.n = self.pre_BN.numel() / self.pre_BN.size(1)
             # .numel() 는 총 원소 개수 반환, .size(1) 는 output_channel 개수 반환하므로
             # n은 평균 계산의 분모 값
-
-            with torch.no_grad():
-                # https://github.com/ptrblck/pytorch_misc/blob/master/batch_norm_manual.py#L63
-                self.running_mean = delta * self.mean + (1 - delta) * self.running_mean
-                self.running_var = delta * self.var * (self.n / (self.n - 1)) + (1 - delta) * self.running_var
-                # update running_var with unbiased var
-                # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                # ==> Implementation follows batch normalization paper,
-                # https://arxiv.org/abs/1502.03167 that calls for unbiased variance when computing moving averages (page 4),
-                # and biased variance during training (page 3).
-                # It is expected that batch norm results are different during training and evaluation,
-                # because during training the batch is normalized with its own mean and (biased) variance,
-                # and during evaluation accumulated running variance and mean are used, thus making evaluation batch-independent.
-                # https://github.com/pytorch/pytorch/issues/3122#issuecomment-336685514
-                # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+            if init:
+                # _initialize_Xs 함수로 실행될 때만 running_mean이랑 running_var 계산
+                with torch.no_grad():
+                    # https://github.com/ptrblck/pytorch_misc/blob/master/batch_norm_manual.py#L63
+                    self.running_mean = delta * self.mean + (1 - delta) * self.running_mean
+                    self.running_var = (
+                        delta * self.var * (self.n / (self.n - 1)) + (1 - delta) * self.running_var
+                    )
+                    # update running_var with unbiased var
+                    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                    # ==> Implementation follows batch normalization paper,
+                    # https://arxiv.org/abs/1502.03167 that calls for unbiased variance when computing moving averages (page 4),
+                    # and biased variance during training (page 3).
+                    # It is expected that batch norm results are different during training and evaluation,
+                    # because during training the batch is normalized with its own mean and (biased) variance,
+                    # and during evaluation accumulated running variance and mean are used, thus making evaluation batch-independent.
+                    # https://github.com/pytorch/pytorch/issues/3122#issuecomment-336685514
+                    # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         else:
             # print(f"==>> self.training: {self.training}")
