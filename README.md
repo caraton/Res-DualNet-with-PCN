@@ -13,7 +13,7 @@ CIFAR-10 데이터셋에 대해 BP 알고리즘을 사용하는 경우 1 epoch �
 
 PCN 에서 infer 과정을 10번 반복하는 경우 1 epoch 학습에 15~16분 정도 걸린다. 
 
-![블록 구조4](https://github.com/paokimsiwoong/Res-DualNet-with-PCN/assets/37607763/97fe84ba-1f22-4241-b93f-bddc2e7182b3)
+![블록 구조4](https://github.com/paokimsiwoong/Res-DualNet-with-PCN/assets/37607763/783af46b-2b65-459b-b5b9-f4a0f47050b1)
 기본 블록 구조는 Res-DualNet과 같이 ShuffleNet의 Depthwise Conv를 Dualpath Conv로 변경하고 두번 수행하는 대신, 1x1 Pointwise Conv를 한번만 수행한다.
 
 Res-DualNet의 구조에 ShuffleNet의 Pointwise Group Conv까지 사용하면 성능이 현저하게 떨어져서 사용하지 않았고   
