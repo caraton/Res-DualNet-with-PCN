@@ -20,7 +20,7 @@ Res-DualNet의 구조에 ShuffleNet의 Pointwise Group Conv까지 사용하면 �
 
 PGConv와 같이 쓰이는 Channel Shuffle도 사용하지 않았다.
 
-output channel의 갯수가 2배로 늘어날때는 Res-DualNet과 다르게 
+output channel의 갯수가 2배로 늘어날때는 ShuffleNet과 같이
 
 shortcut path 에서 3x3 평균 풀링을 수행하고 residual path와 channel concatenation으로 합친다.
 
