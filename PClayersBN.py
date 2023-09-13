@@ -392,7 +392,7 @@ class DWConvBN(nn.Module):
             math.floor((self.input_size + (2 * self.padding) - self.kernel_size) / self.stride) + 1
         )
 
-        self.bias = False
+        # self.bias = False
 
         self.f = f
         self.df = df
@@ -406,7 +406,7 @@ class DWConvBN(nn.Module):
             kernel_size=self.kernel_size,
             stride=self.stride,
             padding=self.padding,
-            bias=self.bias,
+            bias=False,
             device=self.device,
         )
         self.flat_weights = self.conv.weight.view(self.out_channels, -1, 1)
@@ -736,7 +736,7 @@ class DualPathConvBN(nn.Module):
             math.floor((self.input_size + (2 * self.padding) - self.kernel_size) / self.stride) + 1
         )
 
-        self.bias = False
+        # self.bias = False
 
         self.f = f
         self.df = df
@@ -750,7 +750,7 @@ class DualPathConvBN(nn.Module):
             kernel_size=self.kernel_size,
             stride=self.stride,
             padding=self.padding,
-            bias=self.bias,
+            bias=False,
             device=self.device,
         )
 
