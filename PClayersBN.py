@@ -68,7 +68,7 @@ class ConvBN(nn.Module):
         self.eps = 0.00005
         # self.batch_count = 0
         # cumulative moving average 일때 사용
-        self.momentum = 0.001
+        self.momentum = 0.01 / 3.0
         # self.running_mean = nn.Module.re(torch.full([self.out_channels], 0).float()).to(self.device)
         self.register_buffer(name="running_mean", tensor=torch.zeros([self.out_channels]).float())
         # self.running_var = nn.Parameter(torch.full([self.out_channels], 0).float()).to(self.device)
@@ -415,7 +415,7 @@ class DWConvBN(nn.Module):
         self.eps = 0.00005
         # self.batch_count = 0
         # cumulative moving average 일때 사용
-        self.momentum = 0.001
+        self.momentum = 0.01 / 3.0
         self.register_buffer(name="running_mean", tensor=torch.zeros([self.out_channels]).float())
         self.register_buffer(name="running_var", tensor=torch.zeros([self.out_channels]).float())
         # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -757,7 +757,7 @@ class DualPathConvBN(nn.Module):
         self.eps = 0.00005
         # self.batch_count = 0
         # cumulative moving average 일때 사용
-        self.momentum = 0.001
+        self.momentum = 0.01 / 3.0
         self.register_buffer(name="running_mean", tensor=torch.zeros([self.out_channels]).float())
         self.register_buffer(name="running_var", tensor=torch.zeros([self.out_channels]).float())
         # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
