@@ -1,5 +1,6 @@
 # Res-DualNet-with-PCN
 수십층의 깊은 합성곱 신경망인 ResNet 계열에 Predictive Coding Network(PCN) 구조를 적용해보았다.   
+
 Predictive Coding Network를 사용하면 각 layer들의 가중치를 수정할 때, 
 
 BP(역전파) 알고리즘과는 다르게 그 layer의 이전 층과 다음 층의 데이터만 필요하다.
