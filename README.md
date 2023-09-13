@@ -21,8 +21,9 @@ shortcut path 에서 3x3 평균 풀링을 수행하고 residual path와 channel 
 
 또 input 이미지의 가로세로 크기가 2분의 1로 줄어들 때는 
 
-residual path의 첫 Dualpath Conv와 shortcut path의 3x3 평균 풀링의 stride를 2로 두었다.
+residual path의 첫 Dualpath Conv와 shortcut path의 3x3 평균 풀링의 stride를 2로 두었다.   
 
+   
 참고문헌
 [An Approximation of the Error Backpropagation Algorithm in a Predictive Coding Network with Local Hebbian Synaptic Plasticity](https://www.mrcbndu.ox.ac.uk/sites/default/files/pdf_files/Whittington%20Bogacz%202017_Neural%20Comput.pdf)
 
@@ -34,6 +35,7 @@ residual path의 첫 Dualpath Conv와 shortcut path의 3x3 평균 풀링의 stri
 
 [Res-DualNet Dual-Path Depthwise 컨볼루션 기반 ResNet 네트워크 경량화 연구](https://www.dbpia.co.kr/journal/articleDetail?nodeId=NODE11035735&nodeId=NODE11035735&medaTypeCode=185005&language=ko_KR&hasTopBanner=true)
 
+   
 참조한 코드들
 https://deep-learning-study.tistory.com/534
 
