@@ -3,11 +3,15 @@
 Res-DualNet에 ShuffleNet의 Channel Concat을 합친 모델에 Predictive Coding Network를 적용
 
 참고문헌
-[https://www.mrcbndu.ox.ac.uk/sites/default/files/pdf_files/Whittington%20Bogacz%202017_Neural%20Comput.pdf](https://www.mrcbndu.ox.ac.uk/sites/default/files/pdf_files/Whittington%20Bogacz%202017_Neural%20Comput.pdf)
+[An Approximation of the Error Backpropagation Algorithm in a Predictive Coding Network with Local Hebbian Synaptic Plasticity](https://www.mrcbndu.ox.ac.uk/sites/default/files/pdf_files/Whittington%20Bogacz%202017_Neural%20Comput.pdf)
+
 [Predictive Coding Approximates Backprop along Arbitrary Computation Graphs](https://arxiv.org/abs/2006.04182)
-[https://arxiv.org/abs/2305.13562](https://arxiv.org/abs/2305.13562)
-[https://arxiv.org/abs/1707.01083](https://arxiv.org/abs/1707.01083)
-[https://www.dbpia.co.kr/journal/articleDetail?nodeId=NODE11035735&nodeId=NODE11035735&medaTypeCode=185005&language=ko_KR&hasTopBanner=true](https://www.dbpia.co.kr/journal/articleDetail?nodeId=NODE11035735&nodeId=NODE11035735&medaTypeCode=185005&language=ko_KR&hasTopBanner=true)
+
+[Understanding and Improving Optimization in Predictive Coding Networks](https://arxiv.org/abs/2305.13562)
+
+[ShuffleNet : An Extremely Efficient Convolutional Neural Network for Mobile Devices ](https://arxiv.org/abs/1707.01083)
+
+[Res-DualNet Dual-Path Depthwise 컨볼루션 기반 ResNet 네트워크 경량화 연구](https://www.dbpia.co.kr/journal/articleDetail?nodeId=NODE11035735&nodeId=NODE11035735&medaTypeCode=185005&language=ko_KR&hasTopBanner=true)
 
 참조한 코드들
 https://deep-learning-study.tistory.com/534
