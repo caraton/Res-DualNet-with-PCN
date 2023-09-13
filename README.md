@@ -17,8 +17,13 @@ Res-DualNet에 ShuffleNet의 Channel Concat을 합친 모델에 Predictive Codin
 
 참조한 코드들
 https://deep-learning-study.tistory.com/534
+
 https://github.com/pytorch/examples/blob/3970e068c7f18d2d54db2afee6ddd81ef3f93c24/imagenet/main.py#L171
+
 https://ai.dreamkkt.com/54
+
 https://github.com/BerenMillidge/PredictiveCodingBackprop
+
 https://github.com/nalonso2/PredictiveCoding-MQSeqIL/tree/main
+
 https://github.com/ptrblck/pytorch_misc/blob/master/batch_norm_manual.py
