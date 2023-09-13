@@ -24,7 +24,7 @@ class ConvBN(nn.Module):
         stride=1,
         padding=1,
         # bias=False,
-        # BN 할때는 conv bias 무조건
+        # BN 할때는 conv bias 무조건 False
         momentum=0.01,
         f=linear,
         df=d_linear,
