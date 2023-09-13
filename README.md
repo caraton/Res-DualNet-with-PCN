@@ -2,6 +2,8 @@
 
 Res-DualNet에 ShuffleNet의 Channel Concat을 합친 모델에 Predictive Coding Network를 적용
 
+![블록 구조4](https://github.com/paokimsiwoong/Res-DualNet-with-PCN/assets/37607763/617fef69-0cd8-436f-96ba-bca32d5f9414)
+
 참고문헌
 [An Approximation of the Error Backpropagation Algorithm in a Predictive Coding Network with Local Hebbian Synaptic Plasticity](https://www.mrcbndu.ox.ac.uk/sites/default/files/pdf_files/Whittington%20Bogacz%202017_Neural%20Comput.pdf)
 
