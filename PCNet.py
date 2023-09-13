@@ -78,7 +78,9 @@ class PCBlockTest(nn.Module):
     expansion = 1
     # bottleneck 구조에서 쓰임
 
-    def __init__(self, in_channels, out_channels, input_size, learning_rate, stride=1, device="cpu"):
+    def __init__(
+        self, in_channels, out_channels, input_size, learning_rate, stride=1, momentum=None, device="cpu"
+    ):
         # 다른 block이랑 똑같게 groups는 인수에서 일단 뺌
         super().__init__()
 
@@ -276,7 +278,9 @@ class PCBlockBN(nn.Module):
     expansion = 1
     # bottleneck 구조에서 쓰임
 
-    def __init__(self, in_channels, out_channels, input_size, learning_rate, stride=1, device="cpu"):
+    def __init__(
+        self, in_channels, out_channels, input_size, learning_rate, stride=1, momentum=0.01, device="cpu"
+    ):
         # 다른 block이랑 똑같게 groups는 인수에서 일단 뺌
         super().__init__()
 
@@ -297,6 +301,7 @@ class PCBlockBN(nn.Module):
             input_size=input_size,
             learning_rate=learning_rate,
             stride=stride,
+            momentum=momentum,
             f=relu,
             df=d_relu,
             device=device,
@@ -322,6 +327,7 @@ class PCBlockBN(nn.Module):
             input_size=input_size // stride,
             learning_rate=learning_rate,
             stride=1,
+            momentum=momentum,
             f=relu,
             df=d_relu,
             device=device,
@@ -358,11 +364,11 @@ class PCBlockBN(nn.Module):
         x_shortcut = self.shortcut(self.Xs["input"].detach())
         self.Xs["shortcut"] = x_shortcut
 
-        x = self.DP1(self.Xs["input"].detach())
+        x = self.DP1(self.Xs["input"].detach(), init=True)
         self.Xs["DP1"] = x
         x = self.PW(x.detach())
         self.Xs["PW"] = x
-        x = self.DP2(x.detach())
+        x = self.DP2(x.detach(), init=True)
         self.Xs["DP2"] = x
 
         x = self.add(x.detach(), x_shortcut.detach())
@@ -535,6 +541,7 @@ class PCNet(nn.Module):
         n_iter_dx=25,
         infer_rate=0.05,
         beta=100,
+        momentum=0.01,
         num_classes=10,
         init_weights=True,
         device="cpu",
@@ -553,6 +560,8 @@ class PCNet(nn.Module):
         self.beta = beta
         self.gamma = 1 / (1 + self.beta)
 
+        self.momentum = momentum
+
         self.num_classes = num_classes
 
         self.device = device
@@ -565,6 +574,7 @@ class PCNet(nn.Module):
             stride=1,
             padding=1,
             learning_rate=self.learning_rate,
+            momentum=self.momentum,
             f=relu,
             df=d_relu,
             device=self.device,
@@ -649,6 +659,7 @@ class PCNet(nn.Module):
                     input_size=self.input_size,
                     learning_rate=self.learning_rate,
                     stride=stride,
+                    momentum=self.momentum,
                     device=self.device,
                 )
             )
@@ -671,7 +682,7 @@ class PCNet(nn.Module):
         self.Xs["input"] = x.clone()
         self.Us["input"] = x.clone()
 
-        self.Xs["conv1"] = self.conv1(self.Xs["input"].detach())
+        self.Xs["conv1"] = self.conv1(self.Xs["input"].detach(), init=True)
 
         self.Xs["conv2_x"] = self.conv2_x._initialize_Xs(self.Xs["conv1"].detach())
         self.Xs["conv3_x"] = self.conv3_x._initialize_Xs(self.Xs["conv2_x"].detach())
