@@ -34,7 +34,8 @@ PCN with BN.py 파일이나
 PCN with Batch Normalization.ipynb 파일로 학습을 진행한다.
 
    
-참고문헌
+참고문헌   
+
 [An Approximation of the Error Backpropagation Algorithm in a Predictive Coding Network with Local Hebbian Synaptic Plasticity](https://www.mrcbndu.ox.ac.uk/sites/default/files/pdf_files/Whittington%20Bogacz%202017_Neural%20Comput.pdf)
 
 [Predictive Coding Approximates Backprop along Arbitrary Computation Graphs](https://arxiv.org/abs/2006.04182)
@@ -46,7 +47,8 @@ PCN with Batch Normalization.ipynb 파일로 학습을 진행한다.
 [Res-DualNet Dual-Path Depthwise 컨볼루션 기반 ResNet 네트워크 경량화 연구](https://www.dbpia.co.kr/journal/articleDetail?nodeId=NODE11035735&nodeId=NODE11035735&medaTypeCode=185005&language=ko_KR&hasTopBanner=true)
 
    
-참조한 코드들
+참조한 코드들   
+
 https://deep-learning-study.tistory.com/534
 
 https://github.com/pytorch/examples/blob/3970e068c7f18d2d54db2afee6ddd81ef3f93c24/imagenet/main.py#L171
