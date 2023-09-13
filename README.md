@@ -24,6 +24,10 @@ shortcut path 에서 3x3 평균 풀링을 수행하고 residual path와 channel 
 
 residual path의 첫 Dualpath Conv와 shortcut path의 3x3 평균 풀링의 stride를 2로 두었다.   
 
+
+PCN with BN.py 파일이나
+PCN with Batch Normalization.ipynb 파일로 학습을 진행한다.
+
    
 참고문헌
 [An Approximation of the Error Backpropagation Algorithm in a Predictive Coding Network with Local Hebbian Synaptic Plasticity](https://www.mrcbndu.ox.ac.uk/sites/default/files/pdf_files/Whittington%20Bogacz%202017_Neural%20Comput.pdf)
