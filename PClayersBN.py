@@ -66,7 +66,7 @@ class ConvBN(nn.Module):
         # nn.Parameter 클래스를 이 모듈 ConvBN의 attribute로 추가해놓으면
         # self.parameters() iterator로 순회할 때 포함된다.\
 
-        self.eps = 0.00005
+        self.eps = 0.00001
         # self.batch_count = 0
         # cumulative moving average 일때 사용
         self.momentum = momentum
@@ -418,7 +418,7 @@ class DWConvBN(nn.Module):
         # nn.Parameter 클래스를 이 모듈의 attribute로 추가해놓으면
         # self.parameters() iterator로 순회할 때 포함된다.
 
-        self.eps = 0.00005
+        self.eps = 0.00001
         # self.batch_count = 0
         # cumulative moving average 일때 사용
         self.momentum = momentum
@@ -764,7 +764,7 @@ class DualPathConvBN(nn.Module):
         # nn.Parameter 클래스를 이 모듈의 attribute로 추가해놓으면
         # self.parameters() iterator로 순회할 때 포함된다.
 
-        self.eps = 0.00005
+        self.eps = 0.00001
         # self.batch_count = 0
         # cumulative moving average 일때 사용
         self.momentum = momentum
