@@ -82,15 +82,15 @@ from PCNet import *
 from PCfunctions import *
 
 
-def testpcnet34(learning_rate, device):
+def testpcnet(learning_rate, device):
     return PCNet(PCBlockTest, [3, 4, 6, 3], learning_rate=learning_rate, device=device)
 
 
-def pcnet34(learning_rate, device):
+def pcnet(learning_rate, device):
     return PCNet(PCBlockBN, [3, 4, 6, 3], learning_rate=learning_rate, device=device, n_iter_dx=25)
 
 
-def pcnet34_10(learning_rate, device):
+def pcnet_10(learning_rate, device):
     return PCNet(PCBlockBN, [3, 4, 6, 3], learning_rate=learning_rate, device=device, n_iter_dx=10)
 
 
@@ -131,9 +131,9 @@ if __name__ == "__main__":
 
     learning_rate = 0.01
 
-    # model = testpcnet34(learning_rate, device)
-    # model = pcnet34(learning_rate, device)
-    model = pcnet34_10(learning_rate, device)
+    # model = testpcnet(learning_rate, device)
+    # model = pcnet(learning_rate, device)
+    model = pcnet_10(learning_rate, device)
     # torchsummary.summary(model, (3,32,32), batch_size)
 
     # load_state(model=model, load_path='../CIFAR10/data/2023-09-13-12;18;53_epoch_7.pth')
