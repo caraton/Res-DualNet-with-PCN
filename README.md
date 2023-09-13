@@ -15,7 +15,9 @@ PCN 에서 infer 과정을 10번 반복하는 경우 1 epoch 학습에 15~16분 
 
 ![블록 구조4](https://github.com/paokimsiwoong/Res-DualNet-with-PCN/assets/37607763/617fef69-0cd8-436f-96ba-bca32d5f9414)
 기본 블록 구조는 Res-DualNet과 같이 ShuffleNet의 Depthwise Conv를 Dualpath Conv로 변경하고 두번 수행하는 대, 1x1 Pointwise Conv를 한번만 수행한다.
+
 Res-DualNet의 구조에 ShuffleNet의 Pointwise Group Conv까지 사용하면 성능이 현저하게 떨어져서 사용하지 않았고   
+
 PGConv와 같이 쓰이는 Channel Shuffle도 사용하지 않았다.
 
 output channel의 갯수가 2배로 늘어날때는 Res-DualNet과 다르게 
@@ -27,7 +29,8 @@ shortcut path 에서 3x3 평균 풀링을 수행하고 residual path와 channel 
 residual path의 첫 Dualpath Conv와 shortcut path의 3x3 평균 풀링의 stride를 2로 두었다.   
 
 
-PCN with BN.py 파일이나
+PCN with BN.py 파일이나   
+
 PCN with Batch Normalization.ipynb 파일로 학습을 진행한다.
 
    
