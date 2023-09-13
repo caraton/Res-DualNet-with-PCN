@@ -551,7 +551,7 @@ class PCNet(nn.Module):
         super().__init__()
 
         self.in_channels = 32
-        # 3x3 conv와 3x3 max pool을 지나면 32 채널이 됨
+        # 3x3 conv 지나면 32 채널이 됨
         self.input_size = 32
 
         self.learning_rate = learning_rate
@@ -568,7 +568,7 @@ class PCNet(nn.Module):
 
         self.conv1 = ConvBN(
             in_channels=3,
-            out_channels=32,
+            out_channels=self.in_channels,
             kernel_size=3,
             input_size=self.input_size,
             stride=1,
@@ -802,7 +802,7 @@ class PCNet(nn.Module):
 
             dX = self.fc.backward(
                 x=self.Xs["avg_pool"].view(self.Xs["avg_pool"].size(0), -1), e=self.pred_errors["fc"]
-            ).reshape(-1, 256, 1, 1)
+            ).reshape(-1, self.Xs["avg_pool"].size(1), 1, 1)
             # self.fc.backward(x, e) 는 (batch_size, 256 * expansion) 꼴을 반환
             # self.Xs['avg_pool'] 는 (batch_size, 256 * expansion, 1, 1) 형태 이므로
             # dX를 (batch_size, 256 * expansion, 1, 1) 형태로 바꿔준다.
