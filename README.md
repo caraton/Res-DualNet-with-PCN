@@ -35,6 +35,13 @@ PCN with BN.py 파일이나
 PCN with Batch Normalization.ipynb 파일로 학습을 진행한다.
 
    
+
+## TO-DO list   
+Validation 할때 Batch Normalization 문제 해결   
+
+CNN 최종 output feature map의 channel개수를 줄여서 Overfitting 문제 해결하기?    
+
+   
 ## 참고문헌   
 
 [An Approximation of the Error Backpropagation Algorithm in a Predictive Coding Network with Local Hebbian Synaptic Plasticity](https://www.mrcbndu.ox.ac.uk/sites/default/files/pdf_files/Whittington%20Bogacz%202017_Neural%20Comput.pdf)
