@@ -41,8 +41,6 @@ Validation 할때 Batch Normalization 문제 해결
 -> BP로 실험할때는 BN을 써도 train loss와 val loss 사이에 큰 차이가 없었음
 --> BN running_mean, running_var 구현에 문제가 있거나 momentum 값 문제?
 
-CNN 최종 output feature map의 channel개수를 줄여서 Overfitting 문제 해결하기?
-
    
 ## 참고문헌   
 
