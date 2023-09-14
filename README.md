@@ -32,7 +32,13 @@ residual path의 첫 Dualpath Conv와 shortcut path의 3x3 평균 풀링의 stri
 ## 실험방법   
 PCN with BN.py 파일이나   
 
-PCN with Batch Normalization.ipynb 파일로 학습을 진행한다.
+PCN with Batch Normalization.ipynb 파일로 학습을 진행한다.   
+
+BP 모델의 경우   
+
+BPNet.py 파일이나   
+
+BPNetwork.ipynb 파일로 학습을 진행한다.   
 
    
 
