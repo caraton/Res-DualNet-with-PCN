@@ -44,8 +44,11 @@ BPNetwork.ipynb 파일로 학습을 진행한다.
 
 ## TO-DO list   
 Validation 할때 Batch Normalization 문제 해결   
--> train 정확도 90.59%, val 정확도 41.52%로 차이가 심함
---> BP로 실험할때는 BN을 써도 train loss와 val loss 사이에 큰 차이가 없었음. train 정확도 96.60%, val 정확도 88.91%
+
+-> train 정확도 90.59%, val 정확도 41.52%로 차이가 심함   
+
+--> BP로 실험할때는 BN을 써도 train loss와 val loss 사이에 큰 차이가 없었음. train 정확도 96.60%, val 정확도 88.91%   
+
 ---> Batch Normalization running_mean, running_var 구현에 문제가 있거나 momentum 값 문제?
 
    
