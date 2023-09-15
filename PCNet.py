@@ -342,7 +342,7 @@ class PCBlockBN(nn.Module):
         # identity mapping
 
         # filter 갯수가 두배가 되는 블록인 경우에는 identity mapping 대신 1x1 conv로 projection 수행
-        if stride != 1 or in_channels != PCBlockTest.expansion * out_channels:
+        if stride != 1 or in_channels != PCBlockBN.expansion * out_channels:
             # @@@  이 조건문의 out_channels는 self.out_channels로 바꾸면 안된다.  @@@
             # in_channels != ResBlock.expansion * out_channels 은 각 층에서 제일 앞에 있는 블록에서만 참
             self.shortcut = AvgPoolLayer(
