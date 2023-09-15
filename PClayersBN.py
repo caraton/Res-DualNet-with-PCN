@@ -73,7 +73,13 @@ class ConvBN(nn.Module):
         # self.running_mean = nn.Module.re(torch.full([self.out_channels], 0).float()).to(self.device)
         self.register_buffer(name="running_mean", tensor=torch.zeros([self.out_channels]).float())
         # self.running_var = nn.Parameter(torch.full([self.out_channels], 0).float()).to(self.device)
-        self.register_buffer(name="running_var", tensor=torch.zeros([self.out_channels]).float())
+        # self.register_buffer(name="running_var", tensor=torch.zeros([self.out_channels]).float())
+        self.register_buffer(name="running_var", tensor=torch.ones([self.out_channels]).float())
+        # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+        # https://stackoverflow.com/questions/72899079/what-do-batchnorm2ds-running-mean-running-var-mean-in-pytorch
+        # The running mean and variance are initialized to zeros and ones, respectively.
+        # 평균 0, 표준편차 1인 분포로 normalize 하므로 초기값도 그에 맞게 설정
+        # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         # batch normalization의 running estimates 도 state_dict()로 저장되고 불러들어야할 값들이지만
         # optimizer로 학습하지 않는다 ==> parameter가 아니라 buffer로 만들어야 한다.
         # buffer는 leaf-node인 nn.Parameter와 다르게 inplace operation도 가능하지만,
@@ -423,7 +429,8 @@ class DWConvBN(nn.Module):
         # cumulative moving average 일때 사용
         self.momentum = momentum
         self.register_buffer(name="running_mean", tensor=torch.zeros([self.out_channels]).float())
-        self.register_buffer(name="running_var", tensor=torch.zeros([self.out_channels]).float())
+        # self.register_buffer(name="running_var", tensor=torch.zeros([self.out_channels]).float())
+        self.register_buffer(name="running_var", tensor=torch.ones([self.out_channels]).float())
         # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         # buffer는 생성될 때 Module의 device를 따른다 ==> Module.to('cuda') 로 생성한 경우에는
         # register_buffer로 바로 buffer를 GPU에 올릴 수 있다.
@@ -769,7 +776,8 @@ class DualPathConvBN(nn.Module):
         # cumulative moving average 일때 사용
         self.momentum = momentum
         self.register_buffer(name="running_mean", tensor=torch.zeros([self.out_channels]).float())
-        self.register_buffer(name="running_var", tensor=torch.zeros([self.out_channels]).float())
+        # self.register_buffer(name="running_var", tensor=torch.zeros([self.out_channels]).float())
+        self.register_buffer(name="running_var", tensor=torch.ones([self.out_channels]).float())
         # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         # buffer는 생성될 때 Module의 device를 따른다 ==> Module.to('cuda') 로 생성한 경우에는
         # register_buffer로 바로 buffer를 GPU에 올릴 수 있다.
