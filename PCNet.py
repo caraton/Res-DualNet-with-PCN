@@ -72,206 +72,6 @@ from PClayersBN import *
 from PCfunctions import *
 
 
-class PCBlockTest(nn.Module):
-    # Bottleneck 에서만 꼭 필요한 부분들도 미리 추가해두면
-    # Bottleneck 코드 작성 시 편하다.
-    expansion = 1
-    # bottleneck 구조에서 쓰임
-
-    def __init__(
-        self, in_channels, out_channels, input_size, learning_rate, stride=1, momentum=None, device="cpu"
-    ):
-        # 다른 block이랑 똑같게 groups는 인수에서 일단 뺌
-        super().__init__()
-
-        # self.groups = 4
-        # self.out_channels = out_channels
-        self.out_channels = in_channels
-        # output 채널의 개수를 conv로 늘리지 않고
-        # x = torch.cat((x, x_shortcut), dim=1) 로 늘리기 때문에
-        # in_channels로 변경
-
-        # BatchNorm 과정에서 bias를 추가하기 때문에 conv layer에서는 bias를 빼준다
-        # https://stats.stackexchange.com/questions/482305/batch-normalization-and-the-need-for-bias-in-neural-networks
-
-        self.DP1 = DualPathConvLayer(
-            in_channels=in_channels,
-            out_channels=self.out_channels,
-            kernel_size=3,
-            input_size=input_size,
-            learning_rate=learning_rate,
-            stride=stride,
-            f=relu,
-            df=d_relu,
-            device=device,
-        )
-        # self.BN1 = nn.BatchNorm2d(self.out_channels)
-        # self.relu = RELU()
-
-        self.PW = ConvLayer(
-            in_channels=self.out_channels,
-            out_channels=self.out_channels,
-            kernel_size=1,
-            input_size=input_size // stride,
-            learning_rate=learning_rate,
-            stride=1,
-            padding=0,
-            device=device,
-        )
-
-        self.DP2 = DualPathConvLayer(
-            in_channels=self.out_channels,
-            out_channels=self.out_channels,
-            kernel_size=3,
-            input_size=input_size // stride,
-            learning_rate=learning_rate,
-            stride=1,
-            f=relu,
-            df=d_relu,
-            device=device,
-        )
-
-        # self.BN2 = nn.BatchNorm2d(self.out_channels)
-
-        # self.relu = RELU()
-
-        self.shortcut = ShortcutPath(device=device)
-        self.concat = False
-        # identity mapping
-
-        # filter 갯수가 두배가 되는 블록인 경우에는 identity mapping 대신 1x1 conv로 projection 수행
-        if stride != 1 or in_channels != PCBlockTest.expansion * out_channels:
-            # @@@  이 조건문의 out_channels는 self.out_channels로 바꾸면 안된다.  @@@
-            # in_channels != ResBlock.expansion * out_channels 은 각 층에서 제일 앞에 있는 블록에서만 참
-            self.shortcut = AvgPoolLayer(
-                in_channels=in_channels, input_size=input_size, stride=stride, device=device
-            )
-            self.concat = True
-
-        self.add = AddLayer(concat=self.concat)
-
-        self.Xs = {"input": [], "DP1": [], "DP2": [], "PW": [], "shortcut": [], "add": []}
-        self.Us = {"input": [], "DP1": [], "DP2": [], "PW": [], "shortcut": [], "add": []}
-        # self.Es = {'input':[], 'DP1':[], 'DP2':[], 'PW':[], 'shortcut':[], 'add':[]}
-        self.pred_errors = {"input": [], "DP1": [], "DP2": [], "PW": [], "shortcut": [], "add": []}
-
-    @torch.no_grad()
-    def _initialize_Xs(self, x):
-        self.Xs["input"] = x.clone()
-
-        x_shortcut = self.shortcut(self.Xs["input"].detach())
-        self.Xs["shortcut"] = x_shortcut
-
-        x = self.DP1(self.Xs["input"].detach())
-        self.Xs["DP1"] = x
-        x = self.PW(x.detach())
-        self.Xs["PW"] = x
-        x = self.DP2(x.detach())
-        self.Xs["DP2"] = x
-
-        x = self.add(x.detach(), x_shortcut.detach())
-        self.Xs["add"] = x
-
-        return x
-
-    def forward(self, x):
-        x_shortcut = self.shortcut(x)
-
-        x = self.DP1(x)
-        # x = self.BN1(x)
-        # x = self.relu(x)
-
-        x = self.PW(x)
-
-        # y = torch.zeros_like(x).to(device)
-        # for i, x_s in enumerate(torch.split(x, 2 * self.out_channels // self.groups, dim=1)):
-        #     y += self.DWs[i](x_s)
-
-        x = self.DP2(x)
-
-        # x = self.BN2(y)
-        # x = self.relu(x)
-
-        x = self.add(x, x_shortcut)
-
-        return x
-
-    # PCNet infer에서 매번 수행
-    @torch.no_grad()
-    def prediction(self, e):
-        # self.Us['input'] = u.clone()
-        self.pred_errors["input"] = e
-
-        self.Us["shortcut"] = self.shortcut(self.Xs["input"])
-        self.pred_errors["shortcut"] = self.Xs["shortcut"] - self.Us["shortcut"]
-
-        self.Us["DP1"] = self.DP1(self.Xs["input"])
-        self.pred_errors["DP1"] = self.Xs["DP1"] - self.Us["DP1"]
-
-        self.Us["PW"] = self.PW(self.Xs["DP1"])
-        self.pred_errors["PW"] = self.Xs["PW"] - self.Us["PW"]
-
-        self.Us["DP2"] = self.DP2(self.Xs["PW"])
-        self.pred_errors["DP2"] = self.Xs["DP2"] - self.Us["DP2"]
-
-        self.Us["add"] = self.add(self.Xs["DP2"], self.Xs["shortcut"])
-
-        return self.Us["add"]
-
-    @torch.no_grad()
-    def infer(self, x, decay, infer_rate):
-        self.Xs["add"] = x.clone()
-        self.pred_errors["add"] = self.Xs["add"] - self.Us["add"]
-
-        dX1, dX2 = self.add.backward(self.pred_errors["add"])
-
-        self.Xs["DP2"] -= decay * infer_rate * (self.pred_errors["DP2"] - dX1)
-        self.Xs["shortcut"] -= decay * infer_rate * (self.pred_errors["shortcut"] - dX2)
-        # X가 수정되면 수정된 X로 pred_error를 다시 계산해서 밑 레이어로 패스
-        self.pred_errors["DP2"] = self.Xs["DP2"] - self.Us["DP2"]
-        self.pred_errors["shortcut"] = self.Xs["shortcut"] - self.Us["shortcut"]
-
-        dX = self.DP2.backward(self.pred_errors["DP2"])
-
-        self.Xs["PW"] -= decay * infer_rate * (self.pred_errors["PW"] - dX)
-        # X가 수정되면 수정된 X로 pred_error를 다시 계산해서 밑 레이어로 패스
-        self.pred_errors["PW"] = self.Xs["PW"] - self.Us["PW"]
-
-        dX = self.PW.backward(self.pred_errors["PW"])
-
-        self.Xs["DP1"] -= decay * infer_rate * (self.pred_errors["DP1"] - dX)
-        # X가 수정되면 수정된 X로 pred_error를 다시 계산해서 밑 레이어로 패스
-        self.pred_errors["DP1"] = self.Xs["DP1"] - self.Us["DP1"]
-
-        # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-        dX = self.DP1.backward(self.pred_errors["DP1"])
-
-        dX2 = self.shortcut.backward(self.pred_errors["shortcut"])
-
-        self.Xs["input"] -= decay * infer_rate * (self.pred_errors["input"] - dX - dX2)
-        # self.Xs['input']이 두개로 갈라진 DP1과 shortcut에 같이 사용되므로
-        # 역방향일때는 DP1, shortcut 각각에서 구해진 ^ε(DP1),^ε(shortcut)를 더해야 함
-        # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-
-        return self.Xs["input"]
-
-    @torch.no_grad()
-    def update_weights(self):
-        return [
-            self.DP1.update_weights(self.pred_errors["DP1"]),
-            self.PW.update_weights(self.pred_errors["PW"]),
-            self.DP2.update_weights(self.pred_errors["DP2"]),
-        ]
-
-    def set_lr(self, new_lr):
-        self.DP1.set_lr(new_lr)
-        self.PW.set_lr(new_lr)
-        self.DP2.set_lr(new_lr)
-
-    # def _initialize_weights(self):
-    #     return
-
-
 class PCBlockBN(nn.Module):
     # Bottleneck 에서만 꼭 필요한 부분들도 미리 추가해두면
     # Bottleneck 코드 작성 시 편하다.
@@ -364,11 +164,11 @@ class PCBlockBN(nn.Module):
         x_shortcut = self.shortcut(self.Xs["input"].detach())
         self.Xs["shortcut"] = x_shortcut
 
-        x = self.DP1(self.Xs["input"].detach(), init=True)
+        x = self.DP1(self.Xs["input"].detach())
         self.Xs["DP1"] = x
         x = self.PW(x.detach())
         self.Xs["PW"] = x
-        x = self.DP2(x.detach(), init=True)
+        x = self.DP2(x.detach())
         self.Xs["DP2"] = x
 
         x = self.add(x.detach(), x_shortcut.detach())
@@ -398,7 +198,7 @@ class PCBlockBN(nn.Module):
 
         return x
 
-    # PCNet infer에서 매번 수행
+    # PCNet infer에서 매번 수행 ===> 코드 수정되어 이제는 매번 하지 않음
     @torch.no_grad()
     def prediction(self, e):
         # self.Us['input'] = u.clone()
@@ -414,6 +214,27 @@ class PCBlockBN(nn.Module):
         self.pred_errors["PW"] = self.Xs["PW"] - self.Us["PW"]
 
         self.Us["DP2"] = self.DP2(self.Xs["PW"])
+        self.pred_errors["DP2"] = self.Xs["DP2"] - self.Us["DP2"]
+
+        self.Us["add"] = self.add(self.Xs["DP2"], self.Xs["shortcut"])
+
+        return self.Us["add"]
+
+    @torch.no_grad()
+    def prediction_with_running_estimates(self, e):
+        # self.Us['input'] = u.clone()
+        self.pred_errors["input"] = e
+
+        self.Us["shortcut"] = self.shortcut(self.Xs["input"])
+        self.pred_errors["shortcut"] = self.Xs["shortcut"] - self.Us["shortcut"]
+
+        self.Us["DP1"] = self.DP1.forward_with_running_estimates(self.Xs["input"])
+        self.pred_errors["DP1"] = self.Xs["DP1"] - self.Us["DP1"]
+
+        self.Us["PW"] = self.PW(self.Xs["DP1"])
+        self.pred_errors["PW"] = self.Xs["PW"] - self.Us["PW"]
+
+        self.Us["DP2"] = self.DP2.forward_with_running_estimates(self.Xs["PW"])
         self.pred_errors["DP2"] = self.Xs["DP2"] - self.Us["DP2"]
 
         self.Us["add"] = self.add(self.Xs["DP2"], self.Xs["shortcut"])
@@ -470,9 +291,6 @@ class PCBlockBN(nn.Module):
         self.PW.set_lr(new_lr)
         self.DP2.set_lr(new_lr)
 
-    # def _initialize_weights(self):
-    #     return
-
 
 class PCSequential(nn.Module):
     def __init__(self, blocks):
@@ -511,6 +329,17 @@ class PCSequential(nn.Module):
         return self.Us[-1]
 
     @torch.no_grad()
+    def prediction_with_running_estimates(self, e):
+        # self.Us[0] = u.clone()
+        self.pred_errors[0] = e
+
+        for i in range(self.length):
+            self.Us[i + 1] = self.blocks[i].prediction_with_running_estimates(self.pred_errors[i])
+            self.pred_errors[i + 1] = self.Xs[i + 1] - self.Us[i + 1]
+
+        return self.Us[-1]
+
+    @torch.no_grad()
     def infer(self, x, decay, infer_rate):
         self.Xs[-1] = x
 
@@ -542,6 +371,7 @@ class PCNet(nn.Module):
         infer_rate=0.05,
         beta=100,
         momentum=0.01,
+        num_cnn_output_channel=256,
         num_classes=10,
         init_weights=True,
         device="cpu",
@@ -550,8 +380,14 @@ class PCNet(nn.Module):
         # num_block_inlayers 는 각 층마다 residual block이 몇개씩 들어가는지 정보를 담은 list
         super().__init__()
 
-        self.in_channels = 32
-        # 3x3 conv 지나면 32 채널이 됨
+        if num_cnn_output_channel == 256:
+            self.denominator = 1
+        elif num_cnn_output_channel == 128:
+            self.denominator = 2
+
+        self.in_channels = 32 // self.denominator
+        # 3x3 conv 지나면 32 or 16 채널이 됨
+
         self.input_size = 32
 
         self.learning_rate = learning_rate
@@ -581,25 +417,39 @@ class PCNet(nn.Module):
         )
 
         self.conv2_x = self._make_layer(
-            block_name=block_name, out_channels=32, num_blocks=num_block_inlayers[0], stride=1
+            block_name=block_name,
+            out_channels=(32 // self.denominator),
+            num_blocks=num_block_inlayers[0],
+            stride=1,
         )
         self.conv3_x = self._make_layer(
-            block_name=block_name, out_channels=64, num_blocks=num_block_inlayers[1], stride=1
+            block_name=block_name,
+            out_channels=(64 // self.denominator),
+            num_blocks=num_block_inlayers[1],
+            stride=1,
         )
         self.conv4_x = self._make_layer(
-            block_name=block_name, out_channels=128, num_blocks=num_block_inlayers[2], stride=2
+            block_name=block_name,
+            out_channels=(128 // self.denominator),
+            num_blocks=num_block_inlayers[2],
+            stride=2,
         )
         self.conv5_x = self._make_layer(
-            block_name=block_name, out_channels=256, num_blocks=num_block_inlayers[3], stride=2
+            block_name=block_name,
+            out_channels=(256 // self.denominator),
+            num_blocks=num_block_inlayers[3],
+            stride=2,
         )
         # residual block들을 담은 4개의 층 생성
 
-        self.avg_pool = AdaptiveAvgPoolLayer(in_channels=256, input_size=8, device=self.device)
+        self.avg_pool = AdaptiveAvgPoolLayer(
+            in_channels=(256 // self.denominator), input_size=8, device=self.device
+        )
         # filter 갯수는 유지하고 Width와 Height는 지정한 값으로 average pooling을 수행해 준다
         # ex: 256, 8, 8 을 256, 1, 1 로 변경
 
         self.fc = FCtoSoftMax(
-            in_features=256 * block_name.expansion,
+            in_features=(256 // self.denominator) * block_name.expansion,
             out_features=num_classes,
             learning_rate=self.learning_rate,
             bias=True,
@@ -682,7 +532,7 @@ class PCNet(nn.Module):
         self.Xs["input"] = x.clone()
         self.Us["input"] = x.clone()
 
-        self.Xs["conv1"] = self.conv1(self.Xs["input"].detach(), init=True)
+        self.Xs["conv1"] = self.conv1(self.Xs["input"].detach())
 
         self.Xs["conv2_x"] = self.conv2_x._initialize_Xs(self.Xs["conv1"].detach())
         self.Xs["conv3_x"] = self.conv3_x._initialize_Xs(self.Xs["conv2_x"].detach())
@@ -749,6 +599,36 @@ class PCNet(nn.Module):
         self.pred_errors["conv4_x"] = self.Xs["conv4_x"] - self.Us["conv4_x"]
 
         self.Us["conv5_x"] = self.conv5_x.prediction(self.pred_errors["conv4_x"])
+        self.pred_errors["conv5_x"] = self.Xs["conv5_x"] - self.Us["conv5_x"]
+
+        self.Us["avg_pool"] = self.avg_pool(self.Xs["conv5_x"])
+        self.pred_errors["avg_pool"] = self.Xs["avg_pool"] - self.Us["avg_pool"]
+
+        self.Us["fc"] = self.fc(self.Xs["avg_pool"].view(self.Xs["avg_pool"].size(0), -1))
+
+        return self.Us["fc"]
+
+    @torch.no_grad()
+    def prediction_with_running_estimates(self):
+        # self.Us = {'input':[], 'conv1':[], 'conv2_x':[], 'conv3_x':[], 'conv4_x':[], 'conv5_x':[], 'avg_pool':[], 'fc':[]}
+        # self.Us['input'] = u.clone()
+        # self.pred_errors['input'] = self.Xs['input'] - self.Us['input']
+        # self.pred_errors['input'] = []
+        # ∵ self.Xs['input'] == self.Us['input']
+
+        self.Us["conv1"] = self.conv1.forward_with_running_estimates(self.Xs["input"])
+        self.pred_errors["conv1"] = self.Xs["conv1"] - self.Us["conv1"]
+
+        self.Us["conv2_x"] = self.conv2_x.prediction_with_running_estimates(self.pred_errors["conv1"])
+        self.pred_errors["conv2_x"] = self.Xs["conv2_x"] - self.Us["conv2_x"]
+
+        self.Us["conv3_x"] = self.conv3_x.prediction_with_running_estimates(self.pred_errors["conv2_x"])
+        self.pred_errors["conv3_x"] = self.Xs["conv3_x"] - self.Us["conv3_x"]
+
+        self.Us["conv4_x"] = self.conv4_x.prediction_with_running_estimates(self.pred_errors["conv3_x"])
+        self.pred_errors["conv4_x"] = self.Xs["conv4_x"] - self.Us["conv4_x"]
+
+        self.Us["conv5_x"] = self.conv5_x.prediction_with_running_estimates(self.pred_errors["conv4_x"])
         self.pred_errors["conv5_x"] = self.Xs["conv5_x"] - self.Us["conv5_x"]
 
         self.Us["avg_pool"] = self.avg_pool(self.Xs["conv5_x"])
@@ -874,8 +754,9 @@ class PCNet(nn.Module):
 
         self.infer(input=input, label=label)
         with torch.no_grad():
-            self.pred_errors["fc"] = self.Xs["fc"] - self.prediction()
-            # 가중치 수정 전 마지막으로 한번더 pred_errors 계산
+            self.pred_errors["fc"] = self.Xs["fc"] - self.prediction_with_running_estimates()
+            # 가중치 수정 전 마지막으로 한번더 pred_errors 계산하고
+            # BN의 running_mean과 running_var 계산
 
         dWs_batch, loss_batch, loss_batch_mean = self.update_weight(y)
 
