@@ -51,6 +51,7 @@ Validation 할때 Batch Normalization 문제 해결
 
 ---> Batch Normalization running_mean, running_var 수정 및 BN weight와 bias가 훈련되지 않던 부분을 수정하니
 BP 모델처럼 빠르게 train 정확도가 95% 로 수렴하지만 val loss와 val 정확도는 오히려 더 악화됨
++ 50층 구조 256채널output 모델, 26층 128채널output 모델, 14층 64채널output 모델 모두 동일한 문제 발생
 
    
 ## 참고문헌   
