@@ -140,7 +140,7 @@ def loss_epoch(model, data_loader, sanity_check=False, is_training=True):
             #     print(f"==>> len_data: {len_data}")
             #     break
 
-            len_data = 32
+            len_data = x_b.size(0)
             print(f"==>> len_data: {len_data}")
             break
 
@@ -247,18 +247,18 @@ def load_state(model: nn.Module, load_path):
 
 
 # loss history, acc history 저장 함수
-def save_history(loss_history, acc_history, total_num_epochs, time_history, save_path, filename):
+def save_history(loss_history, acc_history, time_history, total_num_epochs, save_path, filename):
     filepath = os.path.join(save_path, filename)
     with open(filepath, "w") as f:
-        json.dump([loss_history, acc_history, total_num_epochs, time_history], f)
+        json.dump([loss_history, acc_history, time_history, total_num_epochs], f)
 
 
 def load_history(load_path):
     with open(load_path, "r") as f:
         contents = f.read()
-        loss_history, acc_history, total_num_epochs, time_history = json.loads(contents)
+        loss_history, acc_history, time_history, total_num_epochs = json.loads(contents)
 
-    return loss_history, acc_history, total_num_epochs, time_history
+    return loss_history, acc_history, time_history, total_num_epochs
 
 
 def train_and_val(model, params):
@@ -290,18 +290,38 @@ def train_and_val(model, params):
         # print에 쓸 현재 learning rate 값 불러오기
 
         print("".center(50, "-"))
+        print(str(datetime.datetime.now()).split(".")[0])
+        # 이번 epoch 시작시간
         print(f"Epoch {epoch}/{num_epochs-1}, current lr = {current_lr}")
 
         # 훈련
         model.train()
+        # model.conv1.reset_running_estimates()
         for block in model.conv2_x.blocks:
             block.train()
+            # block.DP1.reset_running_estimates()
+            # block.DP2.reset_running_estimates()
         for block in model.conv3_x.blocks:
             block.train()
+            # block.DP1.reset_running_estimates()
+            # block.DP2.reset_running_estimates()
         for block in model.conv4_x.blocks:
             block.train()
+            # block.DP1.reset_running_estimates()
+            # block.DP2.reset_running_estimates()
         for block in model.conv5_x.blocks:
             block.train()
+            # block.DP1.reset_running_estimates()
+            # block.DP2.reset_running_estimates()
+        # https://mindee.com/blog/batch-normalization/
+        # "after training, we freeze all the weights of the model
+        # and run one epoch in to estimate the moving average on the whole dataset."
+        # 새로운 epoch으로 넘어가면 running estimate들을 다 초기화 해주기
+
+        # for i, block in enumerate(model.conv5_x.blocks):
+        #     if i == len(model.conv5_x.blocks) - 1:
+        #         print(f"==>> block.DP2.running_mean: {block.DP2.running_mean}")
+        #         print(f"==>> block.DP2.running_var: {block.DP2.running_var}")
 
         train_loss, train_acc1, train_acc5 = loss_epoch(
             model=model,
@@ -323,6 +343,13 @@ def train_and_val(model, params):
             f"train loss: {train_loss:>.9}, train accuracy: (top1: {train_acc1:3.2f}%, top5: {train_acc5:3.2f}%)"
         )
         print(f"elapsed time: {train_elapsed_time_}")
+
+        for i, block in enumerate(model.conv5_x.blocks):
+            if i == len(model.conv5_x.blocks) - 1:
+                print(f"==>> block.DP2.BN_weight: {block.DP2.BN_weight}")
+                print(f"==>> block.DP2.BN_bias: {block.DP2.BN_bias}")
+                print(f"==>> block.DP2.running_mean: {block.DP2.running_mean}")
+                print(f"==>> block.DP2.running_var: {block.DP2.running_var}")
 
         # 검증
         model.eval()
@@ -369,6 +396,11 @@ def train_and_val(model, params):
         print(f" epoch elapsed time = {epoch_elapsed_time_}")
         time_history.append(epoch_elapsed_time_)
 
+        # for i, block in enumerate(model.conv5_x.blocks):
+        #     if i == len(model.conv5_x.blocks) - 1:
+        #         print(f"==>> block.DP2.running_mean: {block.DP2.running_mean}")
+        #         print(f"==>> block.DP2.running_var: {block.DP2.running_var}")
+
         # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
         # 이번 epoch weight, opt, lr_scheduler 저장
         # timestamp = str(datetime.datetime.now()).split(" ")[0]
@@ -389,13 +421,14 @@ def train_and_val(model, params):
         # @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 
         total_num_epochs += 1
+        print(f"==>> total_num_epochs: {total_num_epochs}")
         save_history(
             loss_history=loss_history,
             acc_history=acc_history,
+            time_history=time_history,
             total_num_epochs=total_num_epochs,
             save_path=save_path,
-            time_history=time_history,
             filename=f"{timestamp}_history.json",
         )
 
-    return model, loss_history, acc_history, total_num_epochs, time_history
+    return model, loss_history, acc_history, time_history, total_num_epochs
