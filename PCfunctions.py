@@ -316,12 +316,8 @@ def train_and_val(model, params):
         # https://mindee.com/blog/batch-normalization/
         # "after training, we freeze all the weights of the model
         # and run one epoch in to estimate the moving average on the whole dataset."
-        # 새로운 epoch으로 넘어가면 running estimate들을 다 초기화 해주기
+        # 새로운 epoch으로 넘어가면 running estimate들을 다 초기화 해보기
 
-        # for i, block in enumerate(model.conv5_x.blocks):
-        #     if i == len(model.conv5_x.blocks) - 1:
-        #         print(f"==>> block.DP2.running_mean: {block.DP2.running_mean}")
-        #         print(f"==>> block.DP2.running_var: {block.DP2.running_var}")
 
         train_loss, train_acc1, train_acc5 = loss_epoch(
             model=model,
@@ -343,13 +339,6 @@ def train_and_val(model, params):
             f"train loss: {train_loss:>.9}, train accuracy: (top1: {train_acc1:3.2f}%, top5: {train_acc5:3.2f}%)"
         )
         print(f"elapsed time: {train_elapsed_time_}")
-
-        for i, block in enumerate(model.conv5_x.blocks):
-            if i == len(model.conv5_x.blocks) - 1:
-                print(f"==>> block.DP2.BN_weight: {block.DP2.BN_weight}")
-                print(f"==>> block.DP2.BN_bias: {block.DP2.BN_bias}")
-                print(f"==>> block.DP2.running_mean: {block.DP2.running_mean}")
-                print(f"==>> block.DP2.running_var: {block.DP2.running_var}")
 
         # 검증
         model.eval()
