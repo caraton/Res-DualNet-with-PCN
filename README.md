@@ -43,7 +43,14 @@ BPNetwork.ipynb 파일로 학습을 진행한다.
    
 
 ## TO-DO list   
-Validation 할때로 수렴하지만 val loss와 val 정확도는 오히려 더 악화됨
+Validation 할때 Batch Normalization 문제 해결   
+
+-> train 정확도 90.59%, val 정확도 41.52%로 차이가 심함   
+
+--> BP로 실험할때는 BN을 써도 train loss와 val loss 사이에 큰 차이가 없었음. train 정확도 96.60%, val 정확도 88.91%   
+
+---> Batch Normalization running_mean, running_var 수정 및 BN weight와 bias가 훈련되지 않던 부분을 수정하니
+BP모델처럼 train 정확도가 빠르게 수렴하지만(95~99%) val loss와 val 정확도는 오히려 더 악화됨
 + 50층 구조 256채널output 모델, 26층 128채널output 모델, 14층 64채널output 모델 모두 동일한 문제 발생
 
    
