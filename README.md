@@ -56,8 +56,8 @@ BP모델처럼 train 정확도가 빠르게 수렴하지만(95~99%) val loss와 
 + 50층 구조 256채널output 모델, 26층 128채널output 모델, 14층 64채널output 모델 모두 동일한 문제 발생
 
 ConvAG, DualPathConvAG, FCtoSoftMax에 적용한 것과 같이      
-나머지 모든 layer들도     
-backward dx값 수정은 torch.autograd.functional.vjp(), 가중치 수정은 각 층마다 분리된 그래프를 만들어 역전파를 수행하는 방식으로 변경하기
+나머지 모든 layer들도 backward dx값 수정은 torch.autograd.functional.vjp(),      
+가중치 수정은 각 층마다 분리된 그래프를 만들어 역전파를 수행하는 방식으로 변경하기
    
 ## 참고문헌   
 
