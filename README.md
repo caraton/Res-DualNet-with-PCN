@@ -22,17 +22,7 @@ PGConv와 같이 쓰이는 Channel Shuffle도 사용하지 않았다.
 
 output channel의 갯수가 2배로 늘어날때는 ShuffleNet과 같이
 
-shortcut path 에서 3x3 평균 풀링을 수행하고 residual path와 channel concatenation으로 합친다.
-
-또 input의 가로세로 크기가 2분의 1로 줄어들 때는 
-
-residual path의 첫 Dualpath Conv와 shortcut path의 3x3 평균 풀링의 stride를 2로 두었다.   
-
-   
-## 실험방법   
-PCN with BN.py 파일이나   
-
-PCN with Batch Normalization.ipynb 파일로 학습을 진행한다.   
+shortcut path 에서 3x3 평균 풀링을 수행하고 re다 속도가 160% 빠르다. 
 
 BP 모델의 경우   
 
