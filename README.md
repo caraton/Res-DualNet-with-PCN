@@ -47,7 +47,8 @@ BPNetwork.ipynb 파일로 학습을 진행한다.
 ## 실험결과     
 
 ![실험 loss 그래프2](https://github.com/paokimsiwoong/Res-DualNet-with-PCN/assets/37607763/e1e02192-bb46-402a-8189-4ae8c907b450)
-![실험 acc 그래프3](https://github.com/paokimsiwoong/Res-DualNet-with-PCN/assets/37607763/2162c7ac-7208-4378-a367-cd614b8680d7)
+![실험 acc 그래프3](https://github.com/paokimsiwoong/Res-DualNet-with-PCN/assets/37607763/2162c7ac-7208-4378-a367-cd614b8680d7)     
+
 #1: ResNet구조, #2:BP모델, #3:PC모델
 
    
