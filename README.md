@@ -9,9 +9,9 @@ BP(역전파) 알고리즘과는 다르게 그 layer의 이전 층과 다음 층
 
 학습에 필요한 연산량이 증가한다. 
 
-CIFAR-10 데이터셋에 대해 BP 알고리즘을 사용하는 경우 1 epoch 학습에 1분정도 걸리지만
+CIFAR-10 데이터셋에 대해 BP 알고리즘을 사용하는 경우 1 epoch 학습에 30초~1분정도 걸리지만
 
-PCN 에서 infer 과정을 10번 반복하는 경우 1 epoch 학습에 15~16분 정도 걸린다. 
+PCN 에서 infer 과정을 100번 반복하는 경우 1 epoch 학습에 34~35분 정도 걸린다. 
 
 ![블록 구조4](https://github.com/paokimsiwoong/Res-DualNet-with-PCN/assets/37607763/783af46b-2b65-459b-b5b9-f4a0f47050b1)
 기본 블록 구조는 Res-DualNet과 같이 ShuffleNet의 Depthwise Conv를 Dualpath Conv로 변경하고 두번 수행하는 대신, 1x1 Pointwise Conv를 한번만 수행한다.
