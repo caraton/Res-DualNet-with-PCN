@@ -42,22 +42,29 @@ BPNet.py 파일이나
 
 BPNetwork.ipynb 파일로 학습을 진행한다.   
 
+
+
+## 실험결과     
+
+![실험 loss 그래프2](https://github.com/paokimsiwoong/Res-DualNet-with-PCN/assets/37607763/e1e02192-bb46-402a-8189-4ae8c907b450)
+![실험 acc 그래프3](https://github.com/paokimsiwoong/Res-DualNet-with-PCN/assets/37607763/2162c7ac-7208-4378-a367-cd614b8680d7)
+#1: ResNet구조, #2:BP모델, #3:PC모델
+
    
 
 ## TO-DO list   
-Validation 할때 Batch Normalization 문제 해결   
+~~Validation 할때 Batch Normalization 문제 해결~~   
 
--> train 정확도 90.59%, val 정확도 41.52%로 차이가 심함   
+~~-> train 정확도 90.59%, val 정확도 41.52%로 차이가 심함~~   
 
---> BP로 실험할때는 BN을 써도 train loss와 val loss 사이에 큰 차이가 없었음. train 정확도 96.60%, val 정확도 88.91%   
+(train loss 계산을 마지막 FC층의 예측값과 target의 예측 오차가 최소화되는 수렴과정을 거치는 활성값 수정 이후에 진행해서
+실제 모델의 loss와 정확도보다 훨씬 높게 측정되는 문제였음.)
+-> BN문제가 아니라 fixed prediction assumption을 지키지 않아 모델의 학습이 제대로 진행되고 있지 않았으며 
+수정 후에는 정상적으로 학습이 진행
 
----> Batch Normalization running_mean, running_var 수정 및 BN weight와 bias가 훈련되지 않던 부분을 수정하니
-BP모델처럼 train 정확도가 빠르게 수렴하지만(95~99%) val loss와 val 정확도는 오히려 더 악화됨
-+ 50층 구조 256채널output 모델, 26층 128채널output 모델, 14층 64채널output 모델 모두 동일한 문제 발생
-
-ConvAG, DualPathConvAG, FCtoSoftMax에 적용한 것과 같이      
+~~ConvAG, DualPathConvAG, FCtoSoftMax에 적용한 것과 같이      
 나머지 모든 layer들도 backward dx값 수정은 torch.autograd.functional.vjp(),      
-가중치 수정은 각 층마다 분리된 그래프를 만들어 역전파를 수행하는 방식으로 변경하기
+가중치 수정은 각 층마다 분리된 그래프를 만들어 역전파를 수행하는 방식으로 변경하기~~
    
 ## 참고문헌   
 
